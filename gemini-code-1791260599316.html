@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>五感探測器 - 暖身小練習</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background-color: #F4F7F6;
+      color: #2D3748;
+      margin: 0;
+      padding: 20px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 30px 22px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: #E6FFFA;
+      color: #234E52;
+      font-size: 18px;
+      font-weight: bold;
+      padding: 6px 16px;
+      border-radius: 30px;
+      margin-bottom: 16px;
+    }
+    .icon {
+      font-size: 64px;
+      margin: 8px 0;
+      animation: float 2.5s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    h2 {
+      font-size: 28px;
+      color: #2C7A7B;
+      margin: 10px 0 16px 0;
+    }
+    .desc {
+      font-size: 21px;
+      line-height: 1.7;
+      color: #4A5568;
+      min-height: 105px;
+      margin-bottom: 16px;
+      text-align: justify;
+      text-justify: inter-ideograph;
+    }
+    .btn-audio {
+      background: #EBF8FF;
+      color: #2B6CB0;
+      font-size: 20px;
+      font-weight: bold;
+      border: 2px solid #90CDF4;
+      border-radius: 14px;
+      padding: 14px 20px;
+      width: 100%;
+      margin: 10px 0 16px 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-audio:active { background: #BEE3F8; }
+    .btn-voice {
+      background: #EDF2F7;
+      color: #4A5568;
+      font-size: 18px;
+      font-weight: 600;
+      border: 1px solid #CBD5E0;
+      border-radius: 12px;
+      padding: 10px 18px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-main {
+      background: #319795;
+      color: #FFFFFF;
+      font-size: 22px;
+      font-weight: bold;
+      border: none;
+      border-radius: 16px;
+      padding: 16px 20px;
+      width: 100%;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(49, 151, 149, 0.35);
+    }
+    .btn-main:active { background: #285E61; }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="app">
+    <div class="badge" id="step-badge">暖身步驟 1 / 5</div>
+    <div class="icon" id="step-icon">👀</div>
+    <h2 id="step-title">視覺探測：看一看</h2>
+    <div class="desc" id="step-desc">請抬起頭環顧四周，找出 3 樣平時沒有特別注意到的顏色或物品，靜靜欣賞它。</div>
+    
+    <div id="audio-slot"></div>
+
+    <button class="btn-voice" onclick="speakCurrent()">🔊 聽語音說明</button>
+    <button class="btn-main" onclick="nextStep()">我感覺到了，下一步 ➔</button>
+  </div>
+
+  <audio id="global-audio" playsinline preload="auto"></audio>
+
+  <script>
+    const steps = [
+      {
+        badge: "暖身步驟 1 / 5",
+        icon: "👀",
+        title: "視覺探測：看一看",
+        desc: "請抬起頭環顧周遭環境，找出 3 個平時沒特別留意的物品或顏色，靜靜地看著它 5 秒鐘。",
+        audio: ""
+      },
+      {
+        badge: "暖身步驟 2 / 5",
+        icon: "👂",
+        title: "聽覺探測：聽一聽",
+        desc: "請先點下方按鈕聽聽溪流聲，再閉上眼睛深呼吸，聽聽周遭空氣裡有沒有平時忽略的微小聲音？",
+        // Wikimedia Commons 官方真實串流流水聲 MP3（支援 iOS Range Request）
+        audio: "https://upload.wikimedia.org/wikipedia/commons/transcoded/5/5d/Forest_stream_in_the_fog.ogg/Forest_stream_in_the_fog.ogg.mp3"
+      },
+      {
+        badge: "暖身步驟 3 / 5",
+        icon: "✋",
+        title: "觸覺探測：摸一摸",
+        desc: "請感受雙腳踏在地面上的扎實感，並用雙手摸摸桌面、衣服或手機邊框，感受它的溫度與質地。",
+        audio: ""
+      },
+      {
+        badge: "暖身步驟 4 / 5",
+        icon: "👃",
+        title: "嗅覺探測：聞一聞",
+        desc: "請慢慢用鼻子深深吸一口氣。聞聞看周遭空氣的味道，或是衣物上淡淡的洗衣香、環境氣味。",
+        audio: ""
+      },
+      {
+        badge: "暖身步驟 5 / 5",
+        icon: "👅",
+        title: "味覺探測：品一品",
+        desc: "輕輕閉上嘴巴，動動舌頭，感受一下口腔裡現在有什麼滋味？感覺唾液的分泌與口腔的溫度。",
+        audio: ""
+      }
+    ];
+
+    let current = 0;
+    const audioElement = document.getElementById('global-audio');
+    let isPlaying = false;
+
+    function renderStep() {
+      const item = steps[current];
+      document.getElementById('step-badge').innerText = item.badge;
+      document.getElementById('step-icon').innerText = item.icon;
+      document.getElementById('step-title').innerText = item.title;
+      document.getElementById('step-desc').innerText = item.desc;
+
+      const audioSlot = document.getElementById('audio-slot');
+      stopAudio();
+
+      if (item.audio) {
+        audioElement.src = item.audio;
+        audioElement.load();
+        audioSlot.innerHTML = `
+          <button class="btn-audio" id="btn-play-sound" onclick="toggleAudio()">
+            <span>▶️</span> 點我播放溪流聲
+          </button>
+        `;
+      } else {
+        audioElement.removeAttribute('src');
+        audioSlot.innerHTML = '';
+      }
+    }
+
+    function toggleAudio() {
+      const btn = document.getElementById('btn-play-sound');
+      if (!btn) return;
+
+      if (isPlaying) {
+        audioElement.pause();
+        isPlaying = false;
+        btn.innerHTML = `<span>▶️</span> 繼續
